@@ -204,13 +204,22 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
     
     logger.debug('🎬 Starting smooth animation from:', driverLocation, 'to:', newLocation);
     
+    // Create worklets for logging that run on JS thread
+    const logLatitudeComplete = () => {
+      logger.debug('✅ Latitude animation completed');
+    };
+    
+    const logLongitudeComplete = () => {
+      logger.debug('✅ Longitude animation completed');
+    };
+
     // Animate latitude and longitude over 5 seconds
     animatedLatitude.value = withTiming(
       newLocation.latitude,
       { duration: 5000, easing: Easing.inOut(Easing.cubic) },
       (finished) => {
         if (finished) {
-          logger.debug('✅ Latitude animation completed');
+          runOnJS(logLatitudeComplete)();
         }
       }
     );
@@ -220,7 +229,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
       { duration: 5000, easing: Easing.inOut(Easing.cubic) },
       (finished) => {
         if (finished) {
-          logger.debug('✅ Longitude animation completed');
+          runOnJS(logLongitudeComplete)();
           isAnimating.value = false;
         }
       }
@@ -881,6 +890,31 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
       }
     };
 
+    // Handle ride cancellation
+    const handleRideCancelled = (data: { rideId: string; message?: string; status?: string }) => {
+      logger.debug('❌ LiveTrackingScreen received ride_cancelled event:', data);
+      logger.debug('❌ Checking if rideId matches:', data.rideId, '===', rideId);
+      
+      if (data.rideId === rideId) {
+        logger.debug('✅ Processing ride cancellation for correct ride');
+        Alert.alert(
+          'Ride Cancelled',
+          data.message || 'Your ride has been cancelled by the driver.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                logger.debug('🚀 Navigating to home screen after driver cancellation');
+                navigation.replace('TabNavigator', { screen: 'Home' });
+              }
+            }
+          ]
+        );
+      } else {
+        logger.debug('🚫 Ignoring ride_cancelled event for different ride:', data.rideId, 'expected:', rideId);
+      }
+    };
+
     // Add event listeners
     const socket = require('../../utils/socket').getSocket();
     if (socket) {
@@ -888,6 +922,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
       logger.debug('🔗 Socket connected:', socket.connected);
       socket.on('driver_arrived', handleDriverArrived);
       socket.on('ride_started', handleRideStarted);
+      socket.on('ride_cancelled', handleRideCancelled);
     } else {
       console.warn('⚠️ No socket available for direct event listeners');
     }
@@ -897,6 +932,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
         logger.debug('🧹 LiveTrackingScreen: Cleaning up direct socket listeners');
         socket.off('driver_arrived', handleDriverArrived);
         socket.off('ride_started', handleRideStarted);
+        socket.off('ride_cancelled', handleRideCancelled);
       }
     };
   }, [rideId, driverInfo, navigation, destination, origin]);

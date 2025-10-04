@@ -1,17 +1,14 @@
 import React, { useRef, useMemo, useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView, Linking, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Dimensions, Image, ScrollView, Alert } from 'react-native';
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import BottomSheet from '@gorhom/bottom-sheet';
+import { Ionicons } from '@expo/vector-icons';
 import Animated, { useSharedValue, withTiming, useAnimatedStyle } from 'react-native-reanimated';
 import polyline from '@mapbox/polyline';
 import Constants from 'expo-constants';
-import { getSocket, emitEvent, onRideBooked, onRideTimeout, clearCallbacks } from '../../utils/socket';
-import * as Location from 'expo-location';
-import { useIsFocused } from '@react-navigation/native';
+import { emitEvent, onRideBooked, onRideTimeout, clearCallbacks } from '../../utils/socket';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import LoadingSpinner from '../../components/common/LoadingSpinner';
-import { useUser, useAuth } from '@clerk/clerk-expo';
+import { useAuth } from '@clerk/clerk-expo';
 import { calculateRideFare, getDistanceFromLatLonInKm } from '../../utils/helpers';
 import { getUserIdFromJWT } from '../../utils/jwtDecoder';
 import { Images } from '../../constants/Images';
@@ -33,9 +30,6 @@ export default function RideOptionsScreen({ navigation, route }: any) {
   // Use pickup and drop as state so they can be updated when route params change
   const [pickup, setPickup] = useState(route.params?.pickup || null);
   const [drop, setDrop] = useState(route.params?.drop || null);
-  const [forWhom, setForWhom] = useState(route.params?.forWhom || 'me');
-  const [friendName, setFriendName] = useState(route.params?.friendName || '');
-  const [friendPhone, setFriendPhone] = useState(route.params?.friendPhone || '');
 
   // Update all state when route params change (e.g., when returning from editing)
   useEffect(() => {
@@ -46,15 +40,6 @@ export default function RideOptionsScreen({ navigation, route }: any) {
     if (route.params?.drop) {
       setDrop(route.params.drop);
       logger.debug('📍 Drop updated from route params:', route.params.drop);
-    }
-    if (route.params?.forWhom) {
-      setForWhom(route.params.forWhom);
-    }
-    if (route.params?.friendName) {
-      setFriendName(route.params.friendName);
-    }
-    if (route.params?.friendPhone) {
-      setFriendPhone(route.params.friendPhone);
     }
   }, [route.params]);
 
@@ -68,7 +53,6 @@ export default function RideOptionsScreen({ navigation, route }: any) {
   const [selected, setSelected] = useState('bike');
   const [isBooking, setIsBooking] = useState(false);
   const [bookingError, setBookingError] = useState<string | null>(null);
-  const { user } = useUser();
   const { getToken } = useAuth();
   const [rideOptions, setRideOptions] = useState<any[]>([]);
 
@@ -135,11 +119,8 @@ export default function RideOptionsScreen({ navigation, route }: any) {
   }, [pickup, drop]);
 
 
-  const bottomSheetRef = useRef<BottomSheet>(null);
   const mapRef = useRef<MapView>(null);
-  const snapPoints = useMemo(() => ['50%', '90%'], []);
   const [routeCoords, setRouteCoords] = useState([]);
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   
   // Dynamic mock vehicles based on pickup location
   const mockVehicles = useMemo(() => {
@@ -170,12 +151,6 @@ export default function RideOptionsScreen({ navigation, route }: any) {
   });
 
   // Handlers
-  const handleEditPickup = () => {
-    navigation.navigate('DropLocationSelector', { type: 'pickup', pickup: pickup, drop: drop, forWhom, friendName, friendPhone });
-  };
-  const handleEditDrop = () => {
-    navigation.navigate('DropLocationSelector', { type: 'drop', pickup: pickup, drop: drop, forWhom, friendName, friendPhone });
-  };
   
   const handleBook = async () => {
     // Prevent multiple bookings
@@ -355,12 +330,6 @@ export default function RideOptionsScreen({ navigation, route }: any) {
               Alert.alert('No Pilots Found', data.message || 'No pilots were found. Please try again.');
     };
     
-    const handleRideError = (data: any) => {
-      console.error('❌ Ride booking error:', data);
-      setIsBooking(false);
-      setBookingError(data.message || 'Booking failed. Please try again.');
-      Alert.alert('Booking Error', data.message || 'Booking failed. Please try again.');
-    };
     
     // Set up callbacks using the proper system
     onRideBooked(handleRideBooked);
@@ -418,22 +387,6 @@ export default function RideOptionsScreen({ navigation, route }: any) {
     fetchRouteDirections();
   }, [pickup, drop]);
 
-  // Dynamically update current location marker as user moves
-  useEffect(() => {
-    let locationSubscription: any;
-    (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
-      if (status === 'granted') {
-        locationSubscription = await Location.watchPositionAsync(
-          { accuracy: Location.Accuracy.High, timeInterval: 2000, distanceInterval: 2 },
-          (loc) => setLocation(loc.coords)
-        );
-      }
-    })();
-    return () => {
-      if (locationSubscription) locationSubscription.remove();
-    };
-  }, []);
 
   // Using pickup and drop from route.params - no need for useState
 
@@ -498,15 +451,9 @@ export default function RideOptionsScreen({ navigation, route }: any) {
         <View style={styles.chipContainer} pointerEvents="box-none">
           <View style={[styles.chip, { left: width * 0.25, top: 30 }]}> 
             <Text numberOfLines={1} style={styles.chipText}>{pickup?.address || 'Pickup Location'}</Text>
-            <TouchableOpacity onPress={handleEditPickup} style={styles.chipEdit}>
-              <Ionicons name="pencil" size={16} color="#222" />
-            </TouchableOpacity>
           </View>
           <View style={[styles.chip, { left: width * 0.55, top: 80 }]}> 
             <Text numberOfLines={1} style={styles.chipText}>{drop?.address || 'Destination'}</Text>
-            <TouchableOpacity onPress={handleEditDrop} style={styles.chipEdit}>
-              <Ionicons name="pencil" size={16} color="#222" />
-            </TouchableOpacity>
           </View>
         </View>
        
@@ -645,8 +592,7 @@ const styles = StyleSheet.create({
     minWidth: 120,
     maxWidth: 180,
   },
-  chipText: { fontWeight: '600', color: '#222', flex: 1, marginRight: 8 },
-  chipEdit: { padding: 4 },
+  chipText: { fontWeight: '600', color: '#222', flex: 1 },
   sheet: {
     position: 'absolute',
     left: 0,

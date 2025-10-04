@@ -64,9 +64,12 @@ export default function RideDetailsScreen({ navigation, route }: RideDetailsScre
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Details</Text>
-                 <TouchableOpacity style={styles.ticketsButton}>
-           <Ionicons name="ticket" size={20} color={Colors.primary} />
-         </TouchableOpacity>
+        <TouchableOpacity 
+          style={styles.ticketsButton}
+          onPress={() => navigation.navigate('HelpSupport')}
+        >
+          <Ionicons name="ticket" size={20} color={Colors.primary} />
+        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>

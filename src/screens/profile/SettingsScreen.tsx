@@ -18,6 +18,7 @@ import { useTranslation } from 'react-i18next';
 import { useLanguage } from '../../i18n/LanguageContext';
 import NotificationPreferencesService, { NotificationPreferences } from '../../services/notificationPreferencesService';
 import NotificationService from '../../services/notificationService';
+import { showRatingPrompt } from '../../utils/appRating';
 
 export default function SettingsScreen({ navigation }: any) {
   const { user } = useUser();
@@ -143,7 +144,7 @@ export default function SettingsScreen({ navigation }: any) {
           icon: 'star-outline',
           title: t('common.rateApp'),
           subtitle: t('common.shareYourFeedback'),
-          action: () => logger.debug('Rate App'),
+          action: () => showRatingPrompt(),
         },
       ],
     },

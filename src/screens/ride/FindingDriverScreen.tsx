@@ -512,6 +512,41 @@ export default function FindingDriverScreen({ navigation, route }: any) {
             origin: pickup,
           });
         });
+
+        // Add direct ride_cancelled listener for driver cancellations
+        socket.on('ride_cancelled', (data) => {
+          logger.debug('❌ Direct ride_cancelled event received in FindingDriverScreen:', data);
+          logger.debug('🔍 Checking if rideId matches:', data.rideId, '===', rideId);
+          
+          // Validate that this is the correct ride
+          if (data.rideId && rideId && data.rideId !== rideId) {
+            logger.debug('🚫 Ride ID mismatch, ignoring cancellation for different ride');
+            return;
+          }
+          
+          logger.debug('✅ Processing ride cancellation for correct ride');
+          
+          // Stop the search timer
+          if (searchTimer.current) {
+            clearInterval(searchTimer.current);
+            searchTimer.current = null;
+          }
+          
+          // Show cancellation alert and navigate to home
+          Alert.alert(
+            'Ride Cancelled',
+            data.message || 'Your ride has been cancelled by the driver.',
+            [
+              {
+                text: 'OK',
+                onPress: () => {
+                  logger.debug('🚀 Navigating to home screen after driver cancellation');
+                  navigation.replace('TabNavigator', { screen: 'Home' });
+                }
+              }
+            ]
+          );
+        });
       }
     };
 
@@ -528,6 +563,7 @@ export default function FindingDriverScreen({ navigation, route }: any) {
       const socket = getSocket();
       if (socket) {
         socket.off('ride_accepted');
+        socket.off('ride_cancelled');
         socket.off('ride_response');
         socket.off('connect');
         socket.off('disconnect');

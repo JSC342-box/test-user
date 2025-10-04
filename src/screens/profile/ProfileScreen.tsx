@@ -165,9 +165,6 @@ export default function ProfileScreen({ navigation }: any) {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity style={styles.notificationButton}>
-          <Ionicons name="notifications-outline" size={24} color={Colors.text} />
-        </TouchableOpacity>
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -318,9 +315,6 @@ const styles = StyleSheet.create({
     fontSize: Layout.fontSize.xl,
     fontWeight: 'bold',
     color: Colors.text,
-  },
-  notificationButton: {
-    padding: Layout.spacing.sm,
   },
   content: {
     flex: 1,

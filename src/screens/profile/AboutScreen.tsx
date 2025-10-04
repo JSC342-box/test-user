@@ -161,7 +161,17 @@ export default function AboutScreen({ navigation }: any) {
         <Text style={styles.info}>Website: www.roqet.com</Text>
         
         <Text style={styles.sectionTitle}>Developed by</Text>
-        <Text style={styles.info}>Roqet Development Team</Text>
+        <Text style={styles.info}>Md Samiuddin - Lead Developer</Text>
+        <Text style={styles.info}>G.Sree Swetha - Frontend Developer</Text>
+        <Text style={styles.info}>N.Sony - Frontend Developer</Text>
+        <Text style={styles.info}>S.Pavani - Frontend Developer</Text>
+        <Text style={styles.info}>J.Arun Kumar - Frontend Developer</Text>
+        <Text style={styles.info}>D.Ugendear - Frontend Developer</Text>
+        <Text style={styles.info}>T.Shankar Reddy - Backend Developer</Text>
+        <Text style={styles.info}>V.Vineeth Kumar - Tester</Text>
+        <Text style={styles.info}>K.Gowri Sahithi - Tester</Text>
+        <Text style={styles.info}>V.Harika - Devops</Text>
+        <Text style={styles.info}>M.Rathna Kumari - Devops</Text>
 
         {/* Hidden Developer Tools */}
         {showDeveloperTools && (

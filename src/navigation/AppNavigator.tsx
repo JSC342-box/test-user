@@ -41,6 +41,8 @@ import AccountIssuesScreen from '../screens/support/AccountIssuesScreen';
 import PaymentsIssuesScreen from '../screens/support/PaymentsIssuesScreen';
 import OtherIssuesScreen from '../screens/support/OtherIssuesScreen';
 import TermsConditionScreen from '../screens/support/TermsConditionScreen';
+import CaptainVehicleIssuesScreen from '../screens/support/CaptainVehicleIssuesScreen';
+import ParcelIssuesScreen from '../screens/support/ParcelIssuesScreen';
 
 // Ride Screens
 import FindingDriverScreen from '../screens/ride/FindingDriverScreen';
@@ -263,6 +265,8 @@ function MainNavigator() {
       <Stack.Screen name="PaymentsIssues" component={PaymentsIssuesScreen} />
       <Stack.Screen name="OtherIssues" component={OtherIssuesScreen} />
       <Stack.Screen name="TermsCondition" component={TermsConditionScreen} />
+      <Stack.Screen name="CaptainVehicleIssues" component={CaptainVehicleIssuesScreen} />
+      <Stack.Screen name="ParcelIssues" component={ParcelIssuesScreen} />
       
       {/* Ride Flow */}
       <Stack.Screen 

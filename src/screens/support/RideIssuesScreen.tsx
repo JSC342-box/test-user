@@ -4,12 +4,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, PRIMARY_GREEN, TITLE_COLOR } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
 
-const issues = [
-  { key: 'cancel_fee', label: 'Review my cancellation fee', screen: 'CancellationFee' },
-  { key: 'accident', label: 'I was involved in an accident', screen: 'AccidentReport' },
-  { key: 'driver_unprofessional', label: 'Driver was unprofessional', screen: 'DriverUnprofessional' },
-  { key: 'vehicle_unexpected', label: "My vehicle wasn't what I expected", screen: 'VehicleUnexpected' },
-  { key: 'lost_item', label: 'I lost something during ride', screen: 'LostItem' },
+const faqItems = [
+  { key: 'high_charge', label: 'I have been charged higher than the estimated fare', screen: 'PaymentsIssues' },
+  { key: 'cancel_fee', label: 'I have been charged a cancellation fee', screen: 'CancellationFee' },
+  { key: 'charged_without_ride', label: "I didn't take the ride but I was charged for the same", screen: 'OtherIssues' },
+  { key: 'no_cashback', label: "I didn't receive cashback in my wallet", screen: 'PaymentsIssues' },
+  { key: 'billing', label: 'Billing Related Issues', screen: 'PaymentsIssues' },
 ];
 
 export default function RideIssuesScreen({ navigation }: any) {
@@ -19,41 +19,29 @@ export default function RideIssuesScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back">
           <Ionicons name="arrow-back" size={24} color={TITLE_COLOR} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Ride Issues</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>FAQs</Text>
+        <TouchableOpacity style={styles.ticketsButton} onPress={() => navigation.navigate('OtherIssues')}>
+          <Ionicons name="star-outline" size={16} color={Colors.text} />
+          <Text style={styles.ticketsText}>Tickets</Text>
+        </TouchableOpacity>
       </View>
-      <ScrollView contentContainerStyle={styles.content}>
-        {issues.map((item) => (
-          <TouchableOpacity
-            key={item.key}
-            style={styles.issueItem}
-            onPress={() => navigation.navigate(item.screen)}
-            accessibilityLabel={item.label}
-          >
-            <Text style={styles.issueText}>{item.label}</Text>
-            <Ionicons name="chevron-forward" size={22} color={Colors.gray400} />
-          </TouchableOpacity>
-        ))}
-        <View style={styles.infoSection}>
-          <Text style={styles.infoTitle}>Why was I charged a cancellation fee?</Text>
-          <Text style={styles.infoText}>
-            Cancellation fees are charged to compensate drivers for their time and effort when a ride is cancelled after a driver has already been assigned.
-          </Text>
-          <Text style={styles.infoText}>
-            If you believe this fee was charged in error, please describe your situation below and our support team will review your request.
-          </Text>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionHeader}>Ride fare related Issues</Text>
+        <View style={styles.card}>
+          {faqItems.map((item, idx) => (
+            <TouchableOpacity
+              key={item.key}
+              style={[styles.rowItem, idx < faqItems.length - 1 && styles.rowDivider]}
+              onPress={() => navigation.navigate(item.screen)}
+              accessibilityLabel={item.label}
+            >
+              <Text style={styles.rowText}>{item.label}</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.gray400} />
+            </TouchableOpacity>
+          ))}
         </View>
       </ScrollView>
-      <View style={styles.bottomBar}>
-        <TouchableOpacity style={styles.bottomButton} accessibilityLabel="Call Support">
-          <Ionicons name="call-outline" size={20} color={PRIMARY_GREEN} />
-          <Text style={styles.bottomButtonText}>Call</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.bottomButton} accessibilityLabel="Chat with Support">
-          <Ionicons name="chatbubble-ellipses-outline" size={20} color={PRIMARY_GREEN} />
-          <Text style={styles.bottomButtonText}>Chat</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -76,68 +64,50 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: TITLE_COLOR,
   },
-  content: {
-    padding: Layout.spacing.lg,
-    paddingBottom: 120,
-  },
-  issueItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: Colors.white,
-    borderRadius: Layout.borderRadius.md,
-    padding: Layout.spacing.lg,
-    marginBottom: Layout.spacing.sm,
-    shadowColor: Colors.shadow,
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  issueText: {
-    fontSize: Layout.fontSize.md,
-    color: TITLE_COLOR,
-    fontWeight: '500',
-  },
-  bottomBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: Layout.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.white,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  bottomButton: {
+  ticketsButton: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: Colors.gray100,
-    borderRadius: Layout.borderRadius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 32,
-    height: Layout.buttonHeight,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
   },
-  bottomButtonText: {
-    marginLeft: 8,
-    fontSize: Layout.fontSize.md,
-    color: PRIMARY_GREEN,
+  ticketsText: {
+    marginLeft: 6,
+    color: Colors.text,
     fontWeight: '600',
   },
-  infoSection: {
-    marginBottom: Layout.spacing.lg,
+  content: {
+    padding: Layout.spacing.lg,
+    paddingBottom: 40,
   },
-  infoTitle: {
-    fontSize: Layout.fontSize.xl,
-    fontWeight: 'bold',
-    color: TITLE_COLOR,
+  sectionHeader: {
+    fontSize: Layout.fontSize.md,
+    fontWeight: '700',
+    color: Colors.text,
     marginBottom: Layout.spacing.sm,
   },
-  infoText: {
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: Layout.borderRadius.lg,
+    overflow: 'hidden',
+  },
+  rowItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Layout.spacing.lg,
+    paddingVertical: Layout.spacing.lg,
+  },
+  rowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  rowText: {
     fontSize: Layout.fontSize.md,
     color: TITLE_COLOR,
+    fontWeight: '500',
+    flex: 1,
+    paddingRight: Layout.spacing.md,
   },
 }); 

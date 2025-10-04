@@ -4,12 +4,16 @@ import { Ionicons } from '@expo/vector-icons';
 import { Colors, TITLE_COLOR } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
 
-const rows = [
-  { key: 'account', label: 'Account & App', screen: 'AccountIssues' },
-  { key: 'referrals', label: 'Referrals', screen: 'OtherIssues' },
+const items = [
+  { key: 'not_delivered', label: 'My order was not delivered', screen: 'OtherIssues' },
+  { key: 'damaged', label: 'Items are damaged', screen: 'OtherIssues' },
+  { key: 'missing', label: 'Few items are missing from my order', screen: 'OtherIssues' },
+  { key: 'cant_contact', label: 'I am unable to contact the pilot', screen: 'OtherIssues' },
+  { key: 'payment', label: 'I have an issue with the payment', screen: 'PaymentsIssues' },
+  { key: 'not_listed', label: 'My issue is not mentioned above', screen: 'OtherIssues' },
 ];
 
-export default function OtherIssuesScreen({ navigation }: any) {
+export default function ParcelIssuesScreen({ navigation }: any) {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -24,12 +28,12 @@ export default function OtherIssuesScreen({ navigation }: any) {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.sectionHeader}>Other Topics</Text>
+        <Text style={styles.sectionHeader}>Parcel Related Issues</Text>
         <View style={styles.card}>
-          {rows.map((item, idx) => (
+          {items.map((item, idx) => (
             <TouchableOpacity
               key={item.key}
-              style={[styles.rowItem, idx < rows.length - 1 && styles.rowDivider]}
+              style={[styles.rowItem, idx < items.length - 1 && styles.rowDivider]}
               onPress={() => navigation.navigate(item.screen)}
               accessibilityLabel={item.label}
             >
@@ -61,10 +65,6 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: TITLE_COLOR,
   },
-  content: {
-    padding: Layout.spacing.lg,
-    paddingBottom: 40,
-  },
   ticketsButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -77,6 +77,10 @@ const styles = StyleSheet.create({
     marginLeft: 6,
     color: Colors.text,
     fontWeight: '600',
+  },
+  content: {
+    padding: Layout.spacing.lg,
+    paddingBottom: 40,
   },
   sectionHeader: {
     fontSize: Layout.fontSize.md,
@@ -107,4 +111,6 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: Layout.spacing.md,
   },
-}); 
+});
+
+

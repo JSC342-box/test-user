@@ -1,8 +1,14 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, TITLE_COLOR } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
+
+const rows = [
+  { key: 'wallets', label: 'Payment & Wallets', screen: 'OtherIssues' },
+  { key: 'coins', label: 'Roqet Coins', screen: 'OtherIssues' },
+  { key: 'pass', label: 'Power Pass', screen: 'OtherIssues' },
+];
 
 export default function PaymentsIssuesScreen({ navigation }: any) {
   return (
@@ -11,30 +17,29 @@ export default function PaymentsIssuesScreen({ navigation }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} accessibilityLabel="Back">
           <Ionicons name="arrow-back" size={24} color={TITLE_COLOR} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Payments and Refunds</Text>
-        <View style={{ width: 24 }} />
+        <Text style={styles.headerTitle}>FAQs</Text>
+        <TouchableOpacity style={styles.ticketsButton} onPress={() => navigation.navigate('OtherIssues')}>
+          <Ionicons name="star-outline" size={16} color={Colors.text} />
+          <Text style={styles.ticketsText}>Tickets</Text>
+        </TouchableOpacity>
       </View>
-      <View style={styles.content}>
-        <Text style={styles.sectionTitle}>Payments & Refund Issues</Text>
-        <Text style={styles.description}>
-          If you're experiencing issues with payments or refunds, select an option below for more help or contact our support team.
-        </Text>
-        <TouchableOpacity style={styles.issueButton} onPress={() => {}} accessibilityLabel="Payment not processed">
-          <Text style={styles.issueText}>Payment not processed</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.issueButton} onPress={() => {}} accessibilityLabel="Refund not received">
-          <Text style={styles.issueText}>Refund not received</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.issueButton} onPress={() => {}} accessibilityLabel="Incorrect charge">
-          <Text style={styles.issueText}>Incorrect charge</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.issueButton} onPress={() => {}} accessibilityLabel="Other payment issue">
-          <Text style={styles.issueText}>Other payment issue</Text>
-        </TouchableOpacity>
-        <Text style={styles.note}>
-          Can't find your issue? Contact our support team for further assistance.
-        </Text>
-      </View>
+
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionHeader}>Pass and Payment related Issues</Text>
+        <View style={styles.card}>
+          {rows.map((item, idx) => (
+            <TouchableOpacity
+              key={item.key}
+              style={[styles.rowItem, idx < rows.length - 1 && styles.rowDivider]}
+              onPress={() => navigation.navigate(item.screen)}
+              accessibilityLabel={item.label}
+            >
+              <Text style={styles.rowText}>{item.label}</Text>
+              <Ionicons name="chevron-forward" size={20} color={Colors.gray400} />
+            </TouchableOpacity>
+          ))}
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -58,33 +63,49 @@ const styles = StyleSheet.create({
     color: TITLE_COLOR,
   },
   content: {
-    flex: 1,
     padding: Layout.spacing.lg,
+    paddingBottom: 40,
   },
-  sectionTitle: {
-    fontSize: Layout.fontSize.lg,
-    fontWeight: 'bold',
-    color: TITLE_COLOR,
-    marginBottom: Layout.spacing.md,
-  },
-  description: {
-    color: Colors.gray700,
-    fontSize: Layout.fontSize.md,
-    marginBottom: Layout.spacing.lg,
-  },
-  issueButton: {
+  ticketsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
     backgroundColor: Colors.gray100,
-    padding: Layout.spacing.md,
-    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+  },
+  ticketsText: {
+    marginLeft: 6,
+    color: Colors.text,
+    fontWeight: '600',
+  },
+  sectionHeader: {
+    fontSize: Layout.fontSize.md,
+    fontWeight: '700',
+    color: Colors.text,
     marginBottom: Layout.spacing.sm,
   },
-  issueText: {
-    color: TITLE_COLOR,
-    fontSize: Layout.fontSize.md,
+  card: {
+    backgroundColor: Colors.white,
+    borderRadius: Layout.borderRadius.lg,
+    overflow: 'hidden',
   },
-  note: {
-    color: Colors.gray500,
-    fontSize: Layout.fontSize.sm,
-    marginTop: Layout.spacing.xl,
+  rowItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: Layout.spacing.lg,
+    paddingVertical: Layout.spacing.lg,
+  },
+  rowDivider: {
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.borderLight,
+  },
+  rowText: {
+    fontSize: Layout.fontSize.md,
+    color: TITLE_COLOR,
+    fontWeight: '500',
+    flex: 1,
+    paddingRight: Layout.spacing.md,
   },
 }); 

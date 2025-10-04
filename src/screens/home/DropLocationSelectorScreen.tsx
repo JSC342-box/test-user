@@ -243,7 +243,7 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
                   onPress: async () => {
                     const newLocation = await getCurrentLocationReliably();
                     if (newLocation && validateLocationForRebook(newLocation, 'pickup').isValid) {
-                      navigation.replace('RideOptions', {
+                      navigation.navigate('RideOptions', {
                         pickup: newLocation,
                         drop: route.params.destination,
                         forWhom,
@@ -269,7 +269,7 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
             return;
           }
           
-          navigation.replace('RideOptions', {
+          navigation.navigate('RideOptions', {
             pickup: pickupLocation,
             drop: dropParam,
             forWhom,
@@ -770,7 +770,7 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
               onPress: async () => {
                 const newLocation = await getCurrentLocationReliably();
                 if (newLocation && validateLocationForRebook(newLocation, 'pickup').isValid) {
-                  navigation.replace('RideOptions', {
+                  navigation.navigate('RideOptions', {
                     pickup: newLocation,
                     drop: location,
                     forWhom,
@@ -796,7 +796,7 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
         return;
       }
       
-      navigation.replace('RideOptions', {
+                  navigation.navigate('RideOptions', {
         pickup: pickupLocation,
         drop: location,
         forWhom,
@@ -812,7 +812,7 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
       if (route.params?.type === 'pickup') {
         logger.debug('🔄 Navigating back to RideOptions with updated pickup:', location);
         logger.debug('📍 Original drop preserved:', route.params?.drop);
-        navigation.replace('RideOptions', {
+                  navigation.navigate('RideOptions', {
           pickup: location,
           drop: route.params?.drop, // Use original drop from route params, don't change it
           forWhom,
@@ -908,7 +908,11 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
             <View style={{ flex: 1, justifyContent: 'center' }}>
               {/* Pickup Location */}
               <TouchableOpacity 
-                onPress={() => { setEditing('current'); setCurrentLocationQuery(''); setSearchQuery(''); }} 
+                onPress={() => { 
+                  setEditing('current'); 
+                  setCurrentLocationQuery(currentLocation?.address || currentLocation?.name || ''); 
+                  setSearchQuery(currentLocation?.address || currentLocation?.name || ''); 
+                }} 
                 activeOpacity={0.7}
                 style={{
                   paddingVertical: 10,
@@ -921,25 +925,43 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
                 }}
               >
                 {editing === 'current' ? (
-                  <TextInput
-                    ref={currentInputRef}
-                    style={{ 
-                      color: '#1a1a1a', 
-                      fontWeight: '600', 
-                      fontSize: 15, 
-                      paddingVertical: 0, 
-                      paddingHorizontal: 0,
-                    }}
-                    value={currentLocationQuery}
-                    onChangeText={(text) => {
-                      setCurrentLocationQuery(text);
-                      setSearchQuery(text);
-                    }}
-                    placeholder="Enter pickup location"
-                    placeholderTextColor="#999"
-                    clearButtonMode="while-editing"
-                    onSubmitEditing={() => setEditing(null)}
-                  />
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TextInput
+                      ref={currentInputRef}
+                      style={{ 
+                        color: '#1a1a1a', 
+                        fontWeight: '600', 
+                        fontSize: 15, 
+                        paddingVertical: 0, 
+                        paddingHorizontal: 0,
+                        flex: 1,
+                      }}
+                      value={currentLocationQuery}
+                      onChangeText={(text) => {
+                        setCurrentLocationQuery(text);
+                        setSearchQuery(text);
+                      }}
+                      placeholder="Enter pickup location"
+                      placeholderTextColor="#999"
+                      onSubmitEditing={() => setEditing(null)}
+                    />
+                    {currentLocationQuery.length > 0 && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setCurrentLocationQuery('');
+                          setSearchQuery('');
+                          setSearchResults([]);
+                        }}
+                        style={{
+                          marginLeft: 8,
+                          padding: 4,
+                        }}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Ionicons name="close-circle" size={20} color="#999" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 ) : (
                   <View>
                     <Text style={{ 
@@ -965,8 +987,8 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
               <TouchableOpacity 
                 onPress={() => { 
                   setEditing('drop'); 
-                  setDropLocationQuery('');
-                  setSearchQuery('');
+                  setDropLocationQuery(dropLocation?.address || dropLocation?.name || ''); 
+                  setSearchQuery(dropLocation?.address || dropLocation?.name || '');
                   
                   setTimeout(() => {
                     if (dropInputRef.current) {
@@ -985,39 +1007,57 @@ export default function DropLocationSelectorScreen({ navigation, route }: any) {
                 }}
               >
                 {editing === 'drop' ? (
-                  <TextInput
-                    ref={(ref) => {
-                      dropInputRef.current = ref;
-                    }}
-                    style={{ 
-                      color: '#1a1a1a', 
-                      fontWeight: '600', 
-                      fontSize: 15, 
-                      paddingVertical: 0, 
-                      paddingHorizontal: 0,
-                    }}
-                    value={dropLocationQuery}
-                    onChangeText={(text) => {
-                      setDropLocationQuery(text);
-                      setSearchQuery(text);
-                    }}
-                    placeholder="Where do you want to go?"
-                    placeholderTextColor="#999"
-                    clearButtonMode="while-editing"
-                    returnKeyType="send"
-                    autoFocus={true}
-                    onSubmitEditing={() => {
-                      if (dropLocation) {
-                        navigation.replace('RideOptions', {
-                          pickup: currentLocation,
-                          drop: dropLocation,
-                          forWhom,
-                          friendName,
-                          friendPhone,
-                        });
-                      }
-                    }}
-                  />
+                  <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <TextInput
+                      ref={(ref) => {
+                        dropInputRef.current = ref;
+                      }}
+                      style={{ 
+                        color: '#1a1a1a', 
+                        fontWeight: '600', 
+                        fontSize: 15, 
+                        paddingVertical: 0, 
+                        paddingHorizontal: 0,
+                        flex: 1,
+                      }}
+                      value={dropLocationQuery}
+                      onChangeText={(text) => {
+                        setDropLocationQuery(text);
+                        setSearchQuery(text);
+                      }}
+                      placeholder="Where do you want to go?"
+                      placeholderTextColor="#999"
+                      returnKeyType="send"
+                      autoFocus={true}
+                      onSubmitEditing={() => {
+                        if (dropLocation) {
+                          navigation.navigate('RideOptions', {
+                            pickup: currentLocation,
+                            drop: dropLocation,
+                            forWhom,
+                            friendName,
+                            friendPhone,
+                          });
+                        }
+                      }}
+                    />
+                    {dropLocationQuery.length > 0 && (
+                      <TouchableOpacity
+                        onPress={() => {
+                          setDropLocationQuery('');
+                          setSearchQuery('');
+                          setSearchResults([]);
+                        }}
+                        style={{
+                          marginLeft: 8,
+                          padding: 4,
+                        }}
+                        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+                      >
+                        <Ionicons name="close-circle" size={20} color="#999" />
+                      </TouchableOpacity>
+                    )}
+                  </View>
                 ) : (
                   <View>
                     <Text style={{ 
