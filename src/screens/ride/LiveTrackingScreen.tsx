@@ -16,7 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
-import { onRideStatus, onDriverLocation, onRideCompleted, clearCallbacks, getSocket } from '../../utils/socket';
+import { onRideStatus, onDriverLocation, onRideCompleted, clearCallbacks, getSocket, cancelRide } from '../../utils/socket';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import { Images } from '../../constants/Images';
 import ConnectionStatus from '../../components/common/ConnectionStatus';
@@ -66,6 +66,7 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
   const [driverPhoneNumber, setDriverPhoneNumber] = useState<string | null>(null); // Real phone number from backend
   const [realDriverName, setRealDriverName] = useState<string | null>(null); // Real driver name from backend
   const [isLoadingRideData, setIsLoadingRideData] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false); // State for cancel button loading
   const [driverInfoState, setDriverInfoState] = useState<{
     id: string;
     name: string;
@@ -96,6 +97,46 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
 
   // Flag to prevent multiple API calls
   const hasFetchedRideDetails = useRef(false);
+
+  // Cancel ride function
+  const handleCancelRide = () => {
+    Alert.alert(
+      'Cancel Ride',
+      'Are you sure you want to cancel this ride? A cancellation fee may apply.',
+      [
+        {
+          text: 'No',
+          style: 'cancel',
+        },
+        {
+          text: 'Yes, Cancel',
+          style: 'destructive',
+          onPress: async () => {
+            setIsCancelling(true);
+            try {
+              logger.debug('🚫 User initiated ride cancellation:', { rideId });
+              
+              // Emit cancel ride event
+              const success = cancelRide(rideId, 'User cancelled ride');
+              
+              if (success) {
+                logger.debug('✅ Cancel ride event emitted successfully');
+                // The socket will handle the response and navigation
+              } else {
+                logger.error('❌ Failed to emit cancel ride event');
+                Alert.alert('Error', 'Failed to cancel ride. Please try again.');
+                setIsCancelling(false);
+              }
+            } catch (error) {
+              logger.error('❌ Error cancelling ride:', error);
+              Alert.alert('Error', 'An error occurred while cancelling the ride. Please try again.');
+              setIsCancelling(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   // State to track if we're receiving real-time updates
   const [lastLocationUpdate, setLastLocationUpdate] = useState<Date | null>(null);
@@ -897,14 +938,16 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
       
       if (data.rideId === rideId) {
         logger.debug('✅ Processing ride cancellation for correct ride');
+        setIsCancelling(false); // Reset cancel button state
+        
         Alert.alert(
           'Ride Cancelled',
-          data.message || 'Your ride has been cancelled by the driver.',
+          data.message || 'Your ride has been cancelled.',
           [
             {
               text: 'OK',
               onPress: () => {
-                logger.debug('🚀 Navigating to home screen after driver cancellation');
+                logger.debug('🚀 Navigating to home screen after ride cancellation');
                 navigation.replace('TabNavigator', { screen: 'Home' });
               }
             }
@@ -915,6 +958,42 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
       }
     };
 
+    // Handle ride cancellation success (when user cancels)
+    const handleRideCancellationSuccess = (data: { message: string; cancellationFee: number }) => {
+      logger.debug('✅ LiveTrackingScreen received ride_cancellation_success event:', data);
+      setIsCancelling(false); // Reset cancel button state
+      
+      const message = data.cancellationFee > 0 
+        ? `${data.message}\n\nCancellation fee: ₹${data.cancellationFee}`
+        : data.message;
+      
+      Alert.alert(
+        'Ride Cancelled',
+        message,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              logger.debug('🚀 Navigating to home screen after user cancellation');
+              navigation.replace('TabNavigator', { screen: 'Home' });
+            }
+          }
+        ]
+      );
+    };
+
+    // Handle ride cancellation error
+    const handleRideCancellationError = (data: { message: string }) => {
+      logger.debug('❌ LiveTrackingScreen received ride_cancellation_error event:', data);
+      setIsCancelling(false); // Reset cancel button state
+      
+      Alert.alert(
+        'Cancellation Failed',
+        data.message || 'Failed to cancel ride. Please try again.',
+        [{ text: 'OK' }]
+      );
+    };
+
     // Add event listeners
     const socket = require('../../utils/socket').getSocket();
     if (socket) {
@@ -923,6 +1002,8 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
       socket.on('driver_arrived', handleDriverArrived);
       socket.on('ride_started', handleRideStarted);
       socket.on('ride_cancelled', handleRideCancelled);
+      socket.on('ride_cancellation_success', handleRideCancellationSuccess);
+      socket.on('ride_cancellation_error', handleRideCancellationError);
     } else {
       console.warn('⚠️ No socket available for direct event listeners');
     }
@@ -930,9 +1011,11 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
     return () => {
       if (socket) {
         logger.debug('🧹 LiveTrackingScreen: Cleaning up direct socket listeners');
-        socket.off('driver_arrived', handleDriverArrived);
-        socket.off('ride_started', handleRideStarted);
-        socket.off('ride_cancelled', handleRideCancelled);
+      socket.off('driver_arrived', handleDriverArrived);
+      socket.off('ride_started', handleRideStarted);
+      socket.off('ride_cancelled', handleRideCancelled);
+      socket.off('ride_cancellation_success', handleRideCancellationSuccess);
+      socket.off('ride_cancellation_error', handleRideCancellationError);
       }
     };
   }, [rideId, driverInfo, navigation, destination, origin]);
@@ -1358,6 +1441,24 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* Cancel Button */}
+        <View style={styles.cancelButtonContainer}>
+          <TouchableOpacity 
+            style={[styles.cancelButton, isCancelling && styles.cancelButtonDisabled]} 
+            onPress={handleCancelRide}
+            disabled={isCancelling}
+          >
+            <Ionicons 
+              name={isCancelling ? "hourglass" : "close-circle"} 
+              size={20} 
+              color={isCancelling ? Colors.gray400 : Colors.error} 
+            />
+            <Text style={[styles.cancelButtonText, isCancelling && styles.cancelButtonTextDisabled]}>
+              {isCancelling ? 'Cancelling...' : 'Cancel Ride'}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Call Modal */}
@@ -1698,6 +1799,40 @@ const styles = StyleSheet.create({
     color: Colors.white,
     fontSize: 12,
     fontWeight: '600',
+  },
+  cancelButtonContainer: {
+    marginTop: 16,
+    paddingHorizontal: 20,
+  },
+  cancelButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Colors.white,
+    borderWidth: 2,
+    borderColor: Colors.error,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    shadowColor: Colors.shadow,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cancelButtonDisabled: {
+    opacity: 0.6,
+    borderColor: Colors.gray400,
+  },
+  cancelButtonText: {
+    color: Colors.error,
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 8,
+    fontFamily: 'System',
+  },
+  cancelButtonTextDisabled: {
+    color: Colors.gray400,
   },
 
 
