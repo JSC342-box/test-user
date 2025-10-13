@@ -229,10 +229,7 @@ export default function PersonalDetailsScreen({ route, navigation }: any) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('profile.accountInformation')}</Text>
           
-          <View style={styles.detailRow}>
-            <Text style={styles.label}>{t('profile.userId')}:</Text>
-            <Text style={styles.value}>{userProfile?.id || t('common.notAvailable')}</Text>
-          </View>
+          
           
           <View style={styles.detailRow}>
             <Text style={styles.label}>{t('profile.registrationDate')}:</Text>

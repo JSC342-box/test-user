@@ -31,7 +31,7 @@ const helpTopics = [
   { key: 'fare', label: 'Ride fare related Issues', screen: 'RideIssues' },
   { key: 'captain', label: 'Pilot and Vehicle related issues', screen: 'CaptainVehicleIssues' },
   { key: 'payment', label: 'Pass and Payment related Issues', screen: 'PaymentsIssues' },
-  { key: 'parcel', label: 'Parcel Related Issues', screen: 'ParcelIssues' },
+ 
   { key: 'other', label: 'Other Topics', screen: 'OtherIssues' },
 ];
 
@@ -93,8 +93,8 @@ export default function HelpSupportScreen({ navigation }: any) {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Last Ride */}
-        <Text style={styles.sectionHeader}>Your last ride</Text>
-        <View style={styles.lastRideCard}>
+        {/* <Text style={styles.sectionHeader}>Your last ride</Text> */}
+        {/* <View style={styles.lastRideCard}>
           <View style={styles.lastRideRow}>
             <View style={styles.iconBox}>
               <Ionicons name="bus-outline" size={20} color={Colors.text} />
@@ -112,7 +112,7 @@ export default function HelpSupportScreen({ navigation }: any) {
             </View>
             <Ionicons name="chevron-forward" size={18} color={Colors.gray400} />
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {/* Help topics */}
         <Text style={styles.sectionHeader}>Help topics</Text>
