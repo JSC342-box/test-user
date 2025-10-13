@@ -1428,10 +1428,6 @@ export default function LiveTrackingScreen({ navigation, route }: any) {
           )}
           
           <View style={styles.iconButtons}>
-            <TouchableOpacity style={styles.iconButton} onPress={handleCall}>
-              <Ionicons name="call" size={20} color={Colors.primary} />
-            </TouchableOpacity>
-            
             <TouchableOpacity style={styles.iconButton} onPress={onShareTrip}>
               <Ionicons name="share" size={20} color={Colors.primary} />
             </TouchableOpacity>

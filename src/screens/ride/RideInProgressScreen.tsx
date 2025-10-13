@@ -776,12 +776,6 @@ export default function RideInProgressScreen({ navigation, route }: any) {
             <Text style={styles.etaText}>{currentETA} remaining</Text>
           </View>
           <View style={styles.statusRight}>
-            <TouchableOpacity style={styles.actionButton} onPress={handleChat}>
-              <Ionicons name="chatbubble" size={20} color={Colors.primary} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.actionButton} onPress={handleCall}>
-              <Ionicons name="call" size={20} color={Colors.primary} />
-            </TouchableOpacity>
             <TouchableOpacity style={styles.actionButton} onPress={handleSOS}>
               <Ionicons name="warning" size={20} color="#FF3B30" />
             </TouchableOpacity>
