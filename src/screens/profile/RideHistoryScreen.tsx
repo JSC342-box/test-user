@@ -19,8 +19,17 @@ import LoadingSpinner from '../../components/common/LoadingSpinner';
 import { userApi, RideHistory, RideHistoryFilters } from '../../services/userService';
 import { useTranslation } from 'react-i18next';
 
-export default function RideHistoryScreen({ navigation }: any) {
+export default function RideHistoryScreen({ navigation, route }: any) {
   const { t } = useTranslation();
+  const returnTo = route?.params?.returnTo;
+  const forwardedIssue = route?.params?.issue as
+    | 'charged_higher_than_estimated'
+    | 'cancellation_fee'
+    | 'charged_without_ride'
+    | 'no_cashback'
+    | 'billing'
+    | 'general_inquiry'
+    | undefined;
   const [filterVisible, setFilterVisible] = useState(false);
   const [filter, setFilter] = useState<'all' | 'completed' | 'cancelled'>('all');
   const [rideHistory, setRideHistory] = useState<RideHistory[]>([]);
@@ -142,8 +151,37 @@ export default function RideHistoryScreen({ navigation }: any) {
     return (
       <TouchableOpacity 
         style={styles.rideCard} 
-        onPress={() => navigation.navigate('RideDetails', { ride: item })}
+        onPress={() => {
+          // Navigate to ride details when card is clicked
+          navigation.navigate('RideDetails', { ride: item });
+        }}
       >
+        {/* Greater than icon at the top */}
+        <TouchableOpacity 
+          style={styles.chevronContainer}
+          onPress={() => {
+            // Start conversation with customer care when chevron is clicked
+            console.log('RideHistoryScreen - Navigating to Conversation with:', {
+              ride: item,
+              issue: forwardedIssue || (returnTo === 'RideIssues' ? 'charged_higher_than_estimated' : 'general_inquiry')
+            });
+            const params = { 
+              ride: { ...item, rideId: (item as any).rideId || item.id },
+              issue: forwardedIssue || (returnTo === 'RideIssues' ? 'charged_higher_than_estimated' : 'general_inquiry')
+            };
+            // Billing-like issues go straight to customer care
+            if (params.issue === 'billing') {
+              navigation.navigate('Conversation', params);
+            } else if (params.issue === 'charged_without_ride' || params.issue === 'cancellation_fee' || params.issue === 'no_cashback') {
+              navigation.navigate('SupportResolution', params);
+            } else {
+              navigation.navigate('Conversation', params);
+            }
+          }}
+        >
+          <Ionicons name="chevron-forward" size={20} color={Colors.primary} />
+        </TouchableOpacity>
+        
         <View style={styles.rideHeader}>
           <View style={styles.rideDate}>
             <Text style={styles.dateText}>{dateText}</Text>
@@ -258,7 +296,16 @@ export default function RideHistoryScreen({ navigation }: any) {
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            // If we have a returnTo parameter, navigate to that screen
+            if (returnTo) {
+              navigation.navigate(returnTo);
+            } else if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.navigate('Home');
+            }
+          }}
           style={styles.backButton}
         >
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
@@ -385,6 +432,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 3,
+  },
+  chevronContainer: {
+    alignItems: 'flex-end',
+    marginBottom: Layout.spacing.sm,
+    padding: Layout.spacing.sm,
+    alignSelf: 'flex-end',
   },
   rideHeader: {
     flexDirection: 'row',

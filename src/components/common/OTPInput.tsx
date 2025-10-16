@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback, forwardRef, useImperativeHandle } from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,10 @@ import { Colors } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
 import { extractBestOTP, clipboardContainsOTP, isValidOTP } from '../../utils/otpUtils';
 
+export interface OTPInputRef {
+  focusIndex: (index: number) => void;
+}
+
 interface OTPInputProps {
   length: number;
   value: string[];
@@ -28,7 +32,11 @@ interface OTPInputProps {
   manualOnly?: boolean; // When true, disable clipboard/paste and force manual entry
 }
 
-export default function OTPInput({
+const OTPInput = forwardRef<OTPInputRef, OTPInputProps>(OTPInputInternal);
+
+export default OTPInput;
+
+function OTPInputInternal({
   length,
   value,
   onChange,
@@ -38,11 +46,19 @@ export default function OTPInput({
   error = false,
   disabled = false,
   manualOnly = false,
-}: OTPInputProps) {
+}: OTPInputProps, ref: React.Ref<OTPInputRef>) {
   const inputRefs = useRef<(TextInput | null)[]>([]);
   const [isListening, setIsListening] = useState(false);
   const [shakeAnimation] = useState(new Animated.Value(0));
   const [successAnimation] = useState(new Animated.Value(0));
+  // Expose imperative focus control
+  useImperativeHandle(ref, () => ({
+    focusIndex: (index: number) => {
+      const clamped = Math.max(0, Math.min(length - 1, index));
+      inputRefs.current[clamped]?.focus();
+    },
+  }), [length]);
+
 
   // Animation functions
   const triggerShakeAnimation = useCallback(() => {
@@ -153,6 +169,18 @@ export default function OTPInput({
     
     const newOtp = [...value];
     
+    // Handle deletion explicitly (empty string from backspace)
+    if (inputValue.length === 0) {
+      if (newOtp[index]) {
+        newOtp[index] = '';
+      }
+      onChange(newOtp);
+      if (index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      return;
+    }
+    
     // Handle single digit input
     if (inputValue.length === 1) {
       // Validate that it's a digit
@@ -200,10 +228,31 @@ export default function OTPInput({
   }, [length, onChange, onComplete, value, disabled, triggerShakeAnimation, triggerSuccessAnimation, manualOnly]);
 
   const handleKeyPress = useCallback((key: string, index: number) => {
-    if (key === 'Backspace' && !value[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus();
+    if (key !== 'Backspace') return;
+    
+    // If current box has a value, clear it
+    if (value[index]) {
+      const newOtp = [...value];
+      newOtp[index] = '';
+      onChange(newOtp);
+      // After clearing, move focus to previous input (go back)
+      if (index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      }
+      return;
     }
-  }, [value]);
+    
+    // Otherwise move left and clear previous value
+    if (index > 0) {
+      const prevIndex = index - 1;
+      inputRefs.current[prevIndex]?.focus();
+      if (value[prevIndex]) {
+        const newOtp = [...value];
+        newOtp[prevIndex] = '';
+        onChange(newOtp);
+      }
+    }
+  }, [value, onChange]);
 
   const handlePasteOTP = async () => {
     if (disabled) return;
@@ -259,11 +308,18 @@ export default function OTPInput({
   };
 
   const handleInputFocus = useCallback((index: number) => {
-    // Highlight the current input
-    inputRefs.current[index]?.setNativeProps({
+    // Enforce sequential entry: always focus the first empty index
+    const firstEmptyIndex = value.findIndex(digit => !digit);
+    const targetIndex = firstEmptyIndex >= 0 ? firstEmptyIndex : length - 1;
+    if (index !== targetIndex) {
+      inputRefs.current[targetIndex]?.focus();
+      return;
+    }
+    // Highlight the focused input
+    inputRefs.current[targetIndex]?.setNativeProps({
       style: { borderColor: Colors.primary, borderWidth: 2 }
     });
-  }, []);
+  }, [value, length]);
 
   const handleInputBlur = useCallback((index: number) => {
     // Reset border style
@@ -318,10 +374,10 @@ export default function OTPInput({
               onKeyPress={({ nativeEvent }) =>
                 handleKeyPress(nativeEvent.key, index)
               }
-              onFocus={() => handleInputFocus(index)}
+            onFocus={() => handleInputFocus(index)}
               onBlur={() => handleInputBlur(index)}
               keyboardType="number-pad"
-              maxLength={length}
+              maxLength={1}
               textAlign="center"
               selectTextOnFocus
               autoComplete="one-time-code"

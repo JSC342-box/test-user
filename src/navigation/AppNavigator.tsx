@@ -43,6 +43,8 @@ import OtherIssuesScreen from '../screens/support/OtherIssuesScreen';
 import TermsConditionScreen from '../screens/support/TermsConditionScreen';
 import CaptainVehicleIssuesScreen from '../screens/support/CaptainVehicleIssuesScreen';
 import ParcelIssuesScreen from '../screens/support/ParcelIssuesScreen';
+import SupportResolutionScreen from '../screens/support/SupportResolutionScreen';
+import ConversationScreen from '../screens/support/ConversationScreen';
 
 // Ride Screens
 import FindingDriverScreen from '../screens/ride/FindingDriverScreen';
@@ -267,6 +269,8 @@ function MainNavigator() {
       <Stack.Screen name="TermsCondition" component={TermsConditionScreen} />
       <Stack.Screen name="CaptainVehicleIssues" component={CaptainVehicleIssuesScreen} />
       <Stack.Screen name="ParcelIssues" component={ParcelIssuesScreen} />
+      <Stack.Screen name="SupportResolution" component={SupportResolutionScreen} />
+      <Stack.Screen name="Conversation" component={ConversationScreen} />
       
       {/* Ride Flow */}
       <Stack.Screen 
