@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,7 +15,7 @@ import { useSignIn, useSignUp, useUser, useAuth } from '@clerk/clerk-expo';
 import { Colors } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
 import Button from '../../components/common/Button';
-import OTPInput from '../../components/common/OTPInput';
+import OTPInput, { OTPInputRef } from '../../components/common/OTPInput';
 import { logJWTDetails } from '../../utils/jwtDecoder';
 import { useAssignUserType } from '../../utils/helpers';
 
@@ -27,6 +27,7 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
   const [canResend, setCanResend] = useState(false);
   const [error, setError] = useState('');
   const [attempts, setAttempts] = useState(0);
+  const otpRef = useRef<OTPInputRef | null>(null);
   
   const { signIn, setActive: setSignInActive } = useSignIn();
   const { signUp, setActive: setSignUpActive } = useSignUp();
@@ -36,14 +37,16 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
   // Assign customer type to user
   useAssignUserType('customer');
 
-  // Prevent back navigation on Android
+  // Handle Android hardware back: return to Login screen
   useEffect(() => {
     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-      return true; // Prevent default back behavior
+      if (isLoading) return true; // prevent navigating while verifying
+      navigation.replace('Login');
+      return true;
     });
 
     return () => backHandler.remove();
-  }, []);
+  }, [navigation, isLoading]);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -78,6 +81,10 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
     setOtp(['', '', '', '', '', '']);
     setError('');
     setAttempts(0);
+    // Move focus back to the first input
+    setTimeout(() => {
+      otpRef.current?.focusIndex(0);
+    }, 50);
   };
 
   const handleVerifyOTP = async () => {
@@ -302,6 +309,7 @@ export default function OTPVerificationScreen({ navigation, route }: any) {
           </View>
 
           <OTPInput
+            ref={otpRef}
             length={6}
             value={otp}
             onChange={handleOtpChange}

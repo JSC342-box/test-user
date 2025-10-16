@@ -5,11 +5,11 @@ import { Colors, PRIMARY_GREEN, TITLE_COLOR } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
 
 const faqItems = [
-  { key: 'high_charge', label: 'I have been charged higher than the estimated fare', screen: 'PaymentsIssues' },
-  { key: 'cancel_fee', label: 'I have been charged a cancellation fee', screen: 'CancellationFee' },
-  { key: 'charged_without_ride', label: "I didn't take the ride but I was charged for the same", screen: 'OtherIssues' },
-  { key: 'no_cashback', label: "I didn't receive cashback in my wallet", screen: 'PaymentsIssues' },
-  { key: 'billing', label: 'Billing Related Issues', screen: 'PaymentsIssues' },
+  { key: 'high_charge', label: 'I have been charged higher than the estimated fare', screen: 'TabNavigator', params: { screen: 'History', params: { returnTo: 'RideIssues', issue: 'charged_higher_than_estimated' } } },
+  { key: 'cancel_fee', label: 'I have been charged a cancellation fee', screen: 'TabNavigator', params: { screen: 'History', params: { returnTo: 'RideIssues', issue: 'cancellation_fee' } } },
+  { key: 'charged_without_ride', label: "I didn't take the ride but I was charged for the same", screen: 'TabNavigator', params: { screen: 'History', params: { returnTo: 'RideIssues', issue: 'charged_without_ride' } } },
+  { key: 'no_cashback', label: "I didn't receive cashback in my wallet", screen: 'TabNavigator', params: { screen: 'History', params: { returnTo: 'RideIssues', issue: 'no_cashback' } } },
+  { key: 'billing', label: 'Billing Related Issues', screen: 'TabNavigator', params: { screen: 'History', params: { returnTo: 'RideIssues', issue: 'billing' } } },
 ];
 
 export default function RideIssuesScreen({ navigation }: any) {
@@ -33,7 +33,7 @@ export default function RideIssuesScreen({ navigation }: any) {
             <TouchableOpacity
               key={item.key}
               style={[styles.rowItem, idx < faqItems.length - 1 && styles.rowDivider]}
-              onPress={() => navigation.navigate(item.screen)}
+              onPress={() => navigation.navigate(item.screen, item.params)}
               accessibilityLabel={item.label}
             >
               <Text style={styles.rowText}>{item.label}</Text>

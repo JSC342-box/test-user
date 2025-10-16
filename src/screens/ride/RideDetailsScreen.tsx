@@ -66,9 +66,15 @@ export default function RideDetailsScreen({ navigation, route }: RideDetailsScre
         <Text style={styles.headerTitle}>Details</Text>
         <TouchableOpacity 
           style={styles.ticketsButton}
-          onPress={() => navigation.navigate('HelpSupport')}
+          onPress={() => {
+            const normalizedRide = { ...ride, rideId: (ride as any).rideId || ride.id };
+            navigation.navigate('Conversation', {
+              ride: normalizedRide,
+              issue: 'general_inquiry',
+            });
+          }}
         >
-          <Ionicons name="ticket" size={20} color={Colors.primary} />
+          <Text style={styles.helpText}>Help</Text>
         </TouchableOpacity>
       </View>
 
@@ -140,7 +146,7 @@ export default function RideDetailsScreen({ navigation, route }: RideDetailsScre
         </View>
 
                  {/* Invoice Section - Only show for non-cancelled rides */}
-         {ride.status !== 'CANCELLED' && (
+        {ride.status !== 'CANCELLED' && (
            <View style={styles.invoiceCard}>
              <View style={styles.sectionHeader}>
                <Ionicons name="receipt" size={20} color={Colors.primary} />
@@ -172,6 +178,8 @@ export default function RideDetailsScreen({ navigation, route }: RideDetailsScre
              </View>
            </View>
          )}
+
+        
       </ScrollView>
     </SafeAreaView>
   );
@@ -205,6 +213,11 @@ const styles = StyleSheet.create({
      borderRadius: Layout.borderRadius.sm,
      backgroundColor: Colors.gray50,
    },
+  helpText: {
+    color: Colors.primary,
+    fontSize: Layout.fontSize.md,
+    fontWeight: '600',
+  },
   content: {
     flex: 1,
     paddingHorizontal: Layout.spacing.lg,
