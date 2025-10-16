@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, PRIMARY_GREEN, TITLE_COLOR, SUBTITLE_COLOR } from '../../constants/Colors';
 import { Layout } from '../../constants/Layout';
@@ -93,8 +93,8 @@ export default function HelpSupportScreen({ navigation }: any) {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Last Ride */}
-        {/* <Text style={styles.sectionHeader}>Your last ride</Text> */}
-        {/* <View style={styles.lastRideCard}>
+        <Text style={styles.sectionHeader}>Your last ride</Text>
+        <View style={styles.lastRideCard}>
           <View style={styles.lastRideRow}>
             <View style={styles.iconBox}>
               <Ionicons name="bus-outline" size={20} color={Colors.text} />
@@ -105,14 +105,14 @@ export default function HelpSupportScreen({ navigation }: any) {
               {!!lastRide && <Text style={styles.rideStatus}>{lastRideFare}</Text>}
             </View>
           </View>
-          <TouchableOpacity style={styles.rowLink} onPress={() => navigation.getParent()?.navigate('History')}>
+          <TouchableOpacity style={styles.rowLink} onPress={() => navigation.navigate('TabNavigator', { screen: 'History', params: { returnTo: 'HelpSupport' } })}>
             <View style={styles.rowLeft}>
               <Ionicons name="refresh-outline" size={18} color={Colors.text} />
               <Text style={styles.rowLinkText}>Full Ride history</Text>
             </View>
             <Ionicons name="chevron-forward" size={18} color={Colors.gray400} />
           </TouchableOpacity>
-        </View> */}
+        </View>
 
         {/* Help topics */}
         <Text style={styles.sectionHeader}>Help topics</Text>
@@ -145,25 +145,6 @@ export default function HelpSupportScreen({ navigation }: any) {
         </View>
       </ScrollView>
 
-      {/* Bottom Actions */}
-      <View style={styles.bottomBar}>
-        <TouchableOpacity
-          style={styles.bottomButton}
-          accessibilityLabel="Call Support"
-          onPress={() => Linking.openURL('tel:+1234567890')}
-        >
-          <Ionicons name="call-outline" size={20} color={PRIMARY_GREEN} />
-          <Text style={styles.bottomButtonText}>Call</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.bottomButton}
-          accessibilityLabel="Chat with Support"
-          onPress={() => navigation.navigate('Chat', { driver: { name: 'Support' } })}
-        >
-          <Ionicons name="chatbubble-ellipses-outline" size={20} color={PRIMARY_GREEN} />
-          <Text style={styles.bottomButtonText}>Chat</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -201,7 +182,7 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: Layout.spacing.lg,
-    paddingBottom: 120,
+    paddingBottom: Layout.spacing.lg,
   },
   sectionHeader: {
     fontSize: Layout.fontSize.md,
@@ -314,33 +295,5 @@ const styles = StyleSheet.create({
     fontSize: Layout.fontSize.md,
     color: TITLE_COLOR,
     fontWeight: '500',
-  },
-  bottomBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: Layout.spacing.md,
-    borderTopWidth: 1,
-    borderTopColor: Colors.border,
-    backgroundColor: Colors.white,
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-  },
-  bottomButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Colors.gray100,
-    borderRadius: Layout.borderRadius.md,
-    paddingVertical: 10,
-    paddingHorizontal: 32,
-    height: Layout.buttonHeight,
-  },
-  bottomButtonText: {
-    marginLeft: 8,
-    fontSize: Layout.fontSize.md,
-    color: PRIMARY_GREEN,
-    fontWeight: '600',
   },
 }); 

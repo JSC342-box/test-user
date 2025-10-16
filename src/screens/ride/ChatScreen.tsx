@@ -42,10 +42,10 @@ interface ChatMessage {
 }
 
 const quickReplies = [
-  'I\'m here',
-  'Running 2 mins late',
-  'Can you wait?',
-  'Thank you',
+  'I need help with my ride',
+  'I was charged incorrectly',
+  'I have a complaint',
+  'Thank you for your help',
 ];
 
 export default function ChatScreen({ navigation, route }: any) {
@@ -54,7 +54,6 @@ export default function ChatScreen({ navigation, route }: any) {
   const { sendChatNotificationToCurrentUser } = useChatNotifications();
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
   const [isDriverTyping, setIsDriverTyping] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [userId, setUserId] = useState('');
@@ -163,13 +162,13 @@ export default function ChatScreen({ navigation, route }: any) {
       
       // Send push notification for incoming messages from driver
       if (message.senderType === 'driver') {
-        console.log('🔔 Sending high-priority chat notification for incoming message from driver');
+        console.log('🔔 Sending high-priority chat notification for incoming message from pilot');
         
         // Send notification immediately with high priority
         sendChatNotificationToCurrentUser({
           rideId: message.rideId,
           senderId: message.senderId,
-          senderName: driver?.name || 'Driver',
+          senderName: driver?.name || 'Pilot',
           message: message.message,
           messageType: 'text',
           priority: 'high',
@@ -196,7 +195,13 @@ export default function ChatScreen({ navigation, route }: any) {
 
     onChatHistory((data) => {
       console.log('📚 Received chat history:', data);
-      setMessages(data.messages);
+      if (data && data.messages) {
+        console.log(`✅ Loaded ${data.messages.length} messages from chat history`);
+        setMessages(data.messages);
+      } else {
+        console.log('ℹ️ No messages in chat history');
+        setMessages([]);
+      }
       setIsLoading(false);
     });
 
@@ -224,11 +229,23 @@ export default function ChatScreen({ navigation, route }: any) {
 
   const loadChatHistory = () => {
     if (userId && rideId) {
+      console.log('📥 Loading chat history for ride:', rideId);
       getChatHistory({
         rideId: rideId,
         requesterId: userId,
         requesterType: 'user'
       });
+      
+      // Set a timeout in case chat history doesn't load
+      setTimeout(() => {
+        if (isLoading) {
+          console.log('⚠️ Chat history load timeout - stopping loading state');
+          setIsLoading(false);
+        }
+      }, 10000); // 10 seconds timeout
+    } else {
+      console.error('❌ Cannot load chat history - missing userId or rideId:', { userId, rideId });
+      setIsLoading(false);
     }
   };
 
@@ -289,7 +306,30 @@ export default function ChatScreen({ navigation, route }: any) {
           senderType: 'user'
         });
       }
-    }, 1000);
+    }, 1000) as unknown as NodeJS.Timeout;
+  };
+
+  // Format timestamp to readable format
+  const formatTimestamp = (timestamp: string) => {
+    try {
+      const date = new Date(timestamp);
+      const now = new Date();
+      const diffInMs = now.getTime() - date.getTime();
+      const diffInMins = Math.floor(diffInMs / 60000);
+      
+      if (diffInMins < 1) return 'Just now';
+      if (diffInMins < 60) return `${diffInMins}m ago`;
+      
+      const hours = date.getHours();
+      const mins = date.getMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const displayHours = hours % 12 || 12;
+      
+      return `${displayHours}:${mins.toString().padStart(2, '0')} ${ampm}`;
+    } catch (error) {
+      console.error('Error formatting timestamp:', error);
+      return timestamp;
+    }
   };
 
   const renderMessage = ({ item }: { item: ChatMessage }) => (
@@ -314,7 +354,7 @@ export default function ChatScreen({ navigation, route }: any) {
             item.senderType === 'user' ? styles.userTimestamp : styles.driverTimestamp,
           ]}
         >
-          {item.timestamp}
+          {formatTimestamp(item.timestamp)}
         </Text>
         {item.senderType === 'user' && (
           <Ionicons 
@@ -366,7 +406,7 @@ export default function ChatScreen({ navigation, route }: any) {
           <Ionicons name="arrow-back" size={24} color={Colors.text} />
         </TouchableOpacity>
         <View style={styles.headerInfo}>
-          <Text style={styles.driverName}>{driver?.name || 'Driver'}</Text>
+          <Text style={styles.driverName}>{driver?.name || 'Pilot'}</Text>
           <Text style={styles.driverStatus}>
             {isDriverTyping ? 'Typing...' : 'Online'}
           </Text>
@@ -387,8 +427,8 @@ export default function ChatScreen({ navigation, route }: any) {
              
                            sendChatNotificationToCurrentUser({
                 rideId: rideId,
-                senderId: 'test-driver-123',
-                senderName: driver?.name || 'Test Driver',
+                senderId: 'test-pilot-123',
+                senderName: driver?.name || 'Test Pilot',
                 message: testMessage,
                 messageType: 'text',
                 priority: 'high',
@@ -422,7 +462,7 @@ export default function ChatScreen({ navigation, route }: any) {
           ) : (
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>No messages yet</Text>
-              <Text style={styles.emptySubtext}>Start a conversation with your driver</Text>
+              <Text style={styles.emptySubtext}>Start a conversation with customer care</Text>
             </View>
           )
         }
